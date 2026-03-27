@@ -1,0 +1,152 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    --background: 240 15% 5%;
+    --foreground: 220 20% 92%;
+
+    --card: 240 12% 9%;
+    --card-foreground: 220 20% 92%;
+
+    --popover: 240 12% 9%;
+    --popover-foreground: 220 20% 92%;
+
+    --primary: 270 80% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 70% 55%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 240 10% 14%;
+    --muted-foreground: 220 10% 55%;
+
+    --accent: 160 70% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 12% 16%;
+    --input: 240 12% 16%;
+    --ring: 270 80% 60%;
+
+    --radius: 1rem;
+
+    /* NeuroRevise custom tokens */
+    --neon-purple: 270 80% 60%;
+    --neon-blue: 220 90% 60%;
+    --neon-green: 160 70% 50%;
+    --neon-cyan: 185 80% 55%;
+    --neon-pink: 320 80% 60%;
+
+    --glass-bg: 240 12% 9%;
+    --glass-border: 240 15% 20%;
+    --glass-opacity: 0.6;
+
+    --gradient-primary: linear-gradient(135deg, hsl(270 80% 60%), hsl(220 90% 60%));
+    --gradient-accent: linear-gradient(135deg, hsl(220 90% 60%), hsl(160 70% 50%));
+    --gradient-warm: linear-gradient(135deg, hsl(320 80% 60%), hsl(270 80% 60%));
+    --gradient-surface: linear-gradient(145deg, hsl(240 12% 11%), hsl(240 15% 7%));
+
+    --shadow-neon-purple: 0 0 20px hsl(270 80% 60% / 0.3), 0 0 60px hsl(270 80% 60% / 0.1);
+    --shadow-neon-blue: 0 0 20px hsl(220 90% 60% / 0.3), 0 0 60px hsl(220 90% 60% / 0.1);
+    --shadow-neon-green: 0 0 20px hsl(160 70% 50% / 0.3), 0 0 60px hsl(160 70% 50% / 0.1);
+
+    --sidebar-background: 240 15% 5%;
+    --sidebar-foreground: 220 20% 92%;
+    --sidebar-primary: 270 80% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 12% 14%;
+    --sidebar-accent-foreground: 220 20% 92%;
+    --sidebar-border: 240 12% 16%;
+    --sidebar-ring: 270 80% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-card/60 backdrop-blur-xl border border-glass-border rounded-2xl;
+  }
+
+  .glass-subtle {
+    @apply bg-card/40 backdrop-blur-md border border-glass-border/50 rounded-xl;
+  }
+
+  .neon-glow-purple {
+    box-shadow: var(--shadow-neon-purple);
+  }
+
+  .neon-glow-blue {
+    box-shadow: var(--shadow-neon-blue);
+  }
+
+  .neon-glow-green {
+    box-shadow: var(--shadow-neon-green);
+  }
+
+  .gradient-text-primary {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-primary);
+  }
+
+  .gradient-text-accent {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-accent);
+  }
+
+  .font-display {
+    font-family: 'Orbitron', sans-serif;
+  }
+
+  .signal-bar {
+    @apply rounded-full transition-all duration-500;
+  }
+
+  .signal-bar-weak {
+    @apply bg-destructive/80;
+    box-shadow: 0 0 8px hsl(0 75% 55% / 0.5);
+  }
+
+  .signal-bar-medium {
+    @apply bg-[hsl(45_90%_55%)];
+    box-shadow: 0 0 8px hsl(45 90% 55% / 0.5);
+  }
+
+  .signal-bar-strong {
+    @apply bg-accent;
+    box-shadow: 0 0 8px hsl(160 70% 50% / 0.5);
+  }
+
+  .signal-bar-inactive {
+    @apply bg-muted;
+  }
+}
+
+@layer utilities {
+  .text-glow-purple {
+    text-shadow: 0 0 10px hsl(270 80% 60% / 0.5), 0 0 30px hsl(270 80% 60% / 0.2);
+  }
+
+  .text-glow-blue {
+    text-shadow: 0 0 10px hsl(220 90% 60% / 0.5), 0 0 30px hsl(220 90% 60% / 0.2);
+  }
+
+  .text-glow-green {
+    text-shadow: 0 0 10px hsl(160 70% 50% / 0.5), 0 0 30px hsl(160 70% 50% / 0.2);
+  }
+}
