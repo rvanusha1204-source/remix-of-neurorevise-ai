@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Send, Sparkles, BookOpen, Lightbulb, ListOrdered } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const quickButtons = [
   { icon: Sparkles, label: "Simplify", prompt: "Can you simplify this?" },
@@ -10,31 +12,8 @@ const quickButtons = [
 ];
 
 interface Message {
-  role: "ai" | "user";
-  text: string;
-}
-
-const aiResponses: Record<string, string> = {
-  "default": "That's a great question! Based on memory science, spaced repetition helps strengthen neural pathways. Would you like me to break this down further? 🧠",
-  "simplify": "Here's the simple version: Think of your brain like a muscle. The more you practice recalling something, the stronger that memory gets. That's basically spaced repetition! 💪",
-  "example": "Real-world example: Imagine learning to ride a bike. The first time is hard, but each practice session makes it easier. Your brain is literally building stronger connections each time! 🚴",
-  "step-by-step": "Step-by-step breakdown:\n1️⃣ First exposure — your brain creates a new pathway\n2️⃣ Review after 1 day — pathway gets reinforced\n3️⃣ Review after 3 days — starting to stick\n4️⃣ Review after 7 days — moving to long-term\n5️⃣ Review after 30 days — nearly permanent! ✅",
-  "explain": "Let me explain in depth: Memory consolidation happens during sleep and active recall. When you study, neurons fire together creating temporary connections. Through repeated exposure at optimal intervals, these become permanent long-term memories. This is why cramming doesn't work — you need time between sessions! 📚",
-  "derivative": "The derivative measures the rate of change of a function. For sin(x), the derivative is cos(x). Think of it as: if sin(x) tells you your position on a wave, cos(x) tells you your velocity! 📐",
-  "newton": "Newton's laws are the foundation of classical mechanics:\n• 1st: Objects stay at rest or in motion unless acted upon\n• 2nd: F = ma (Force equals mass times acceleration)\n• 3rd: Every action has an equal and opposite reaction ⚡",
-  "mitochondria": "The mitochondria is the powerhouse of the cell! It produces ATP (adenosine triphosphate) through cellular respiration. Think of it as a tiny power plant inside every cell, converting glucose and oxygen into energy your body can use. 🔋",
-};
-
-function getAIResponse(input: string): string {
-  const lower = input.toLowerCase();
-  if (lower.includes("simplif")) return aiResponses["simplify"];
-  if (lower.includes("example")) return aiResponses["example"];
-  if (lower.includes("step")) return aiResponses["step-by-step"];
-  if (lower.includes("explain")) return aiResponses["explain"];
-  if (lower.includes("deriv") || lower.includes("sin") || lower.includes("calculus")) return aiResponses["derivative"];
-  if (lower.includes("newton") || lower.includes("force") || lower.includes("f = ma")) return aiResponses["newton"];
-  if (lower.includes("mitochond") || lower.includes("cell") || lower.includes("atp")) return aiResponses["mitochondria"];
-  return aiResponses["default"];
+  role: "assistant" | "user";
+  content: string;
 }
 
 interface ChatScreenProps {
@@ -44,30 +23,146 @@ interface ChatScreenProps {
 export const ChatScreen = ({ onNavigate }: ChatScreenProps) => {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([
-    { role: "ai", text: "Hi! I'm your AI study buddy. Ask me anything about your subjects — Math, Physics, Chemistry, Biology. I'll help you understand! 🧠" },
+    { role: "assistant", content: "Hi! I'm your AI study buddy. Ask me anything about your subjects — Math, Physics, Chemistry, Biology. I'll help you understand! 🧠" },
   ]);
-  const [isTyping, setIsTyping] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const learningMode = (() => {
+    try {
+      const prefs = JSON.parse(localStorage.getItem("neurorevise-preferences") || "{}");
+      return (prefs.learningStyles || []).join(", ") || "General";
+    } catch { return "General"; }
+  })();
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, isTyping]);
+  }, [messages, isLoading]);
 
-  const sendMessage = (text: string) => {
-    if (!text.trim()) return;
-    const userMsg: Message = { role: "user", text: text.trim() };
+  const sendMessage = async (text: string) => {
+    if (!text.trim() || isLoading) return;
+
+    const userMsg: Message = { role: "user", content: text.trim() };
     setMessages(prev => [...prev, userMsg]);
     setInput("");
-    setIsTyping(true);
+    setIsLoading(true);
 
-    // Simulate AI thinking delay
-    setTimeout(() => {
-      const response = getAIResponse(text);
-      setMessages(prev => [...prev, { role: "ai", text: response }]);
-      setIsTyping(false);
-    }, 800 + Math.random() * 1200);
+    const allMessages = [...messages, userMsg].map(m => ({
+      role: m.role,
+      content: m.content,
+    }));
+
+    let assistantSoFar = "";
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ messages: allMessages, learningMode }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 429) {
+          toast.error("Rate limit reached. Please wait a moment and try again.");
+        } else if (response.status === 402) {
+          toast.error("AI credits exhausted. Add funds in Settings → Workspace → Usage.");
+        } else {
+          toast.error(errorData.error || "Something went wrong. Please try again.");
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      if (!response.body) throw new Error("No response body");
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let textBuffer = "";
+      let streamDone = false;
+
+      while (!streamDone) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        textBuffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex: number;
+        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
+
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (line.startsWith(":") || line.trim() === "") continue;
+          if (!line.startsWith("data: ")) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") {
+            streamDone = true;
+            break;
+          }
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) {
+              assistantSoFar += content;
+              setMessages(prev => {
+                const last = prev[prev.length - 1];
+                if (last?.role === "assistant" && prev.length > 1 && last.content === assistantSoFar.slice(0, -content.length)) {
+                  return prev.map((m, i) => i === prev.length - 1 ? { ...m, content: assistantSoFar } : m);
+                }
+                if (last?.role === "assistant" && prev.length > 1) {
+                  return prev.map((m, i) => i === prev.length - 1 ? { ...m, content: assistantSoFar } : m);
+                }
+                return [...prev, { role: "assistant", content: assistantSoFar }];
+              });
+            }
+          } catch {
+            textBuffer = line + "\n" + textBuffer;
+            break;
+          }
+        }
+      }
+
+      // Final flush
+      if (textBuffer.trim()) {
+        for (let raw of textBuffer.split("\n")) {
+          if (!raw) continue;
+          if (raw.endsWith("\r")) raw = raw.slice(0, -1);
+          if (raw.startsWith(":") || raw.trim() === "") continue;
+          if (!raw.startsWith("data: ")) continue;
+          const jsonStr = raw.slice(6).trim();
+          if (jsonStr === "[DONE]") continue;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) {
+              assistantSoFar += content;
+              setMessages(prev => {
+                const last = prev[prev.length - 1];
+                if (last?.role === "assistant") {
+                  return prev.map((m, i) => i === prev.length - 1 ? { ...m, content: assistantSoFar } : m);
+                }
+                return [...prev, { role: "assistant", content: assistantSoFar }];
+              });
+            }
+          } catch { /* ignore */ }
+        }
+      }
+    } catch (e) {
+      console.error("Chat error:", e);
+      toast.error("Failed to connect to AI. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -87,7 +182,7 @@ export const ChatScreen = ({ onNavigate }: ChatScreenProps) => {
           </div>
           <div>
             <h1 className="text-sm font-bold text-foreground">NeuroAI</h1>
-            <p className="text-[9px] text-neon-green">Online</p>
+            <p className="text-[9px] text-neon-green">Online • {learningMode} mode</p>
           </div>
         </div>
       </motion.div>
@@ -106,11 +201,11 @@ export const ChatScreen = ({ onNavigate }: ChatScreenProps) => {
                 ? "bg-primary text-primary-foreground rounded-br-sm"
                 : "glass rounded-bl-sm text-foreground"
             }`}>
-              {msg.text}
+              {msg.content}
             </div>
           </motion.div>
         ))}
-        {isTyping && (
+        {isLoading && messages[messages.length - 1]?.role === "user" && (
           <motion.div className="flex justify-start" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className="glass rounded-2xl rounded-bl-sm p-3 flex gap-1">
               <span className="w-2 h-2 bg-neon-purple rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
@@ -127,6 +222,7 @@ export const ChatScreen = ({ onNavigate }: ChatScreenProps) => {
             key={btn.label}
             className="glass-subtle px-3 py-1.5 flex items-center gap-1.5 shrink-0"
             onClick={() => sendMessage(btn.prompt)}
+            disabled={isLoading}
           >
             <btn.icon size={12} className="text-neon-purple" />
             <span className="text-[10px] text-foreground">{btn.label}</span>
@@ -141,8 +237,9 @@ export const ChatScreen = ({ onNavigate }: ChatScreenProps) => {
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask anything..."
           className="flex-1 bg-transparent text-xs text-foreground placeholder:text-muted-foreground outline-none px-2"
+          disabled={isLoading}
         />
-        <button type="submit" className="p-2 rounded-xl bg-primary" disabled={!input.trim()}>
+        <button type="submit" className="p-2 rounded-xl bg-primary" disabled={!input.trim() || isLoading}>
           <Send size={14} className="text-primary-foreground" />
         </button>
       </form>
