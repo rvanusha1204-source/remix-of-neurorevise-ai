@@ -2,59 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    --background: 240 15% 5%;
+    --background: 250 25% 7%;
     --foreground: 220 20% 92%;
 
-    --card: 240 12% 9%;
+    --card: 250 20% 11%;
     --card-foreground: 220 20% 92%;
 
-    --popover: 240 12% 9%;
+    --popover: 250 20% 11%;
     --popover-foreground: 220 20% 92%;
 
-    --primary: 270 80% 60%;
+    --primary: 260 60% 58%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 70% 55%;
+    --secondary: 215 55% 52%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 240 10% 14%;
-    --muted-foreground: 220 10% 55%;
+    --muted: 250 15% 16%;
+    --muted-foreground: 220 12% 55%;
 
-    --accent: 160 70% 50%;
+    --accent: 155 55% 48%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 75% 55%;
+    --destructive: 10 70% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 12% 16%;
-    --input: 240 12% 16%;
-    --ring: 270 80% 60%;
+    --border: 250 18% 18%;
+    --input: 250 18% 18%;
+    --ring: 260 60% 58%;
 
     --radius: 1rem;
 
     /* NeuroRevise custom tokens */
-    --neon-purple: 270 80% 60%;
-    --neon-blue: 220 90% 60%;
-    --neon-green: 160 70% 50%;
-    --neon-cyan: 185 80% 55%;
-    --neon-pink: 320 80% 60%;
+    --neon-purple: 260 60% 58%;
+    --neon-blue: 215 55% 52%;
+    --neon-green: 155 55% 48%;
+    --neon-cyan: 185 50% 50%;
+    --neon-pink: 330 55% 58%;
+    --neon-orange: 25 80% 55%;
 
-    --glass-bg: 240 12% 9%;
-    --glass-border: 240 15% 20%;
-    --glass-opacity: 0.6;
+    --glass-bg: 250 20% 11%;
+    --glass-border: 250 20% 22%;
+    --glass-opacity: 0.5;
 
-    --gradient-primary: linear-gradient(135deg, hsl(270 80% 60%), hsl(220 90% 60%));
-    --gradient-accent: linear-gradient(135deg, hsl(220 90% 60%), hsl(160 70% 50%));
-    --gradient-warm: linear-gradient(135deg, hsl(320 80% 60%), hsl(270 80% 60%));
-    --gradient-surface: linear-gradient(145deg, hsl(240 12% 11%), hsl(240 15% 7%));
+    --gradient-primary: linear-gradient(135deg, hsl(260 60% 58%), hsl(215 55% 52%));
+    --gradient-accent: linear-gradient(135deg, hsl(215 55% 52%), hsl(155 55% 48%));
+    --gradient-warm: linear-gradient(135deg, hsl(330 55% 58%), hsl(260 60% 58%));
+    --gradient-surface: linear-gradient(145deg, hsl(250 20% 13%), hsl(250 25% 8%));
+    --gradient-calm: linear-gradient(135deg, hsl(260 40% 20%), hsl(215 35% 15%));
 
-    --shadow-neon-purple: 0 0 20px hsl(270 80% 60% / 0.3), 0 0 60px hsl(270 80% 60% / 0.1);
-    --shadow-neon-blue: 0 0 20px hsl(220 90% 60% / 0.3), 0 0 60px hsl(220 90% 60% / 0.1);
-    --shadow-neon-green: 0 0 20px hsl(160 70% 50% / 0.3), 0 0 60px hsl(160 70% 50% / 0.1);
+    --shadow-neon-purple: 0 4px 20px hsl(260 60% 58% / 0.2), 0 0 40px hsl(260 60% 58% / 0.08);
+    --shadow-neon-blue: 0 4px 20px hsl(215 55% 52% / 0.2), 0 0 40px hsl(215 55% 52% / 0.08);
+    --shadow-neon-green: 0 4px 20px hsl(155 55% 48% / 0.2), 0 0 40px hsl(155 55% 48% / 0.08);
 
     --sidebar-background: 240 15% 5%;
     --sidebar-foreground: 220 20% 92%;
@@ -110,7 +112,8 @@
   }
 
   .font-display {
-    font-family: 'Orbitron', sans-serif;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
   }
 
   .signal-bar {

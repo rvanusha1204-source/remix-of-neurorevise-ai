@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["Orbitron", "sans-serif"],
+        display: ["Nunito", "sans-serif"],
         sans: ["Inter", "sans-serif"],
       },
       colors: {
@@ -56,6 +56,7 @@ export default {
         "neon-green": "hsl(var(--neon-green))",
         "neon-cyan": "hsl(var(--neon-cyan))",
         "neon-pink": "hsl(var(--neon-pink))",
+        "neon-orange": "hsl(var(--neon-orange))",
         "glass-border": "hsl(var(--glass-border))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
