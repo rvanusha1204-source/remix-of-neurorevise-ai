@@ -10,6 +10,7 @@ import { ChatScreen } from "@/components/screens/ChatScreen";
 import { LearnScreen } from "@/components/screens/LearnScreen";
 import { NotificationsScreen } from "@/components/screens/NotificationsScreen";
 import { ProgressScreen } from "@/components/screens/ProgressScreen";
+import { OnboardingScreen } from "@/components/screens/OnboardingScreen";
 import { RapidFireGame } from "@/components/screens/games/RapidFireGame";
 import { MatchCardsGame } from "@/components/screens/games/MatchCardsGame";
 import { WeakSpotGame } from "@/components/screens/games/WeakSpotGame";
@@ -26,6 +27,7 @@ const screens: Record<string, React.ComponentType<{ onNavigate: (screen: string)
   learn: LearnScreen,
   notifications: NotificationsScreen,
   progress: ProgressScreen,
+  onboarding: OnboardingScreen,
   "game-rapid": RapidFireGame,
   "game-match": MatchCardsGame,
   "game-weak": WeakSpotGame,
@@ -34,9 +36,11 @@ const screens: Record<string, React.ComponentType<{ onNavigate: (screen: string)
 };
 
 const Index = () => {
-  const [activeScreen, setActiveScreen] = useState("home");
+  const isOnboarded = localStorage.getItem("neurorevise-onboarded") === "true";
+  const [activeScreen, setActiveScreen] = useState(isOnboarded ? "home" : "onboarding");
 
   const Screen = screens[activeScreen] || HomeScreen;
+  const showNav = activeScreen !== "onboarding";
 
   return (
     <div className="min-h-screen bg-background">
@@ -59,7 +63,7 @@ const Index = () => {
         </AnimatePresence>
       </div>
 
-      <BottomNav active={activeScreen} onNavigate={setActiveScreen} />
+      {showNav && <BottomNav active={activeScreen} onNavigate={setActiveScreen} />}
     </div>
   );
 };
